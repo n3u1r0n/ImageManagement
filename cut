@@ -1,0 +1,30 @@
+import os, sys
+import subprocess
+
+def getLength(filename):
+    result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                             "format=duration", "-of",
+                             "default=noprint_wrappers=1:nokey=1", filename],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
+    return float(result.stdout)
+
+arg = sys.argv
+try:
+    filename = arg[1]
+    assert os.path.isfile(filename)
+    if len(arg) >= 3:
+        removestart = float(arg[2])
+    else:
+        removestart = 16.5
+    if len(arg) == 4:
+        removeend = float(arg[3])
+    else:
+        removeend = 0
+    time = getLength(filename)
+    
+except:
+    print('Usage: py cut filename removestart removeend')
+    exit()
+
+os.system('ffmpeg -ss {} -i "{}" -c copy -t {} "{}"'.format(removestart, filename, time - removeend - removestart, '.'.join(filename.split('.')[:-1]) + '_copy.mp4'))
